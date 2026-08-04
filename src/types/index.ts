@@ -138,10 +138,12 @@ export interface Part {
 export interface Attachment {
   id: string;
   fileName: string;
+  originalName: string;
   fileUrl: string;
   fileType: string;
   fileSize: number;
   uploadedBy: string;
+  uploadedAt: string;
   createdAt: string;
 }
 

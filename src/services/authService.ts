@@ -10,6 +10,11 @@ export const authService = {
     return data;
   },
 
+  async register(payload: { firstName: string; lastName: string; email: string; password: string; phone: string }): Promise<AuthResponse> {
+    const { data } = await api.post<AuthResponse>('/auth/register', payload);
+    return data;
+  },
+
   async forgotPassword(email: string): Promise<{ message: string }> {
     const { data } = await api.post('/auth/forgot-password', { email });
     return data;

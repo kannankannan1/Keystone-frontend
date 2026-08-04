@@ -6,3 +6,4 @@ export { reportService } from './reportService';
 export { userService } from './userService';
 export { partsService } from './partsService';
 export { timeLogService } from './timeLogService';
+export { fileService } from './fileService';

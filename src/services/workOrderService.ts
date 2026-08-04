@@ -59,7 +59,8 @@ export const workOrderService = {
   async uploadAttachment(id: string, file: File): Promise<WorkOrder> {
     const formData = new FormData();
     formData.append('file', file);
-    const { data } = await api.post(`/work-orders/${id}/attachments`, formData, {
+    formData.append('workOrderId', id);
+    const { data } = await api.post('/files/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return data;

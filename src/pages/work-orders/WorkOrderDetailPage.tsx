@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiEdit2, FiTrash2, FiUserPlus, FiMessageSquare, FiClock, FiTool, FiPaperclip } from 'react-icons/fi';
-import { Card, Button, Badge, Breadcrumb, ConfirmDialog } from '@/components/common';
+import { FiArrowLeft, FiEdit2, FiTrash2, FiUserPlus, FiMessageSquare, FiClock, FiTool, FiPaperclip, FiFile } from 'react-icons/fi';
+import { Card, Button, Badge, Breadcrumb, ConfirmDialog, FileUpload, FileManager } from '@/components/common';
+import { fileService } from '@/services';
 import { STATUS_LABELS, STATUS_COLORS, PRIORITY_LABELS, PRIORITY_COLORS, PRIORITY_DOTS } from '@/constants';
 import { formatDate, formatDuration, timeAgo } from '@/utils';
 import type { WorkOrderStatus } from '@/types';
@@ -36,6 +37,7 @@ const mockWO = {
     { id: '1', part: { name: 'HVAC Filter 20x25x1' }, quantity: 4, unitCost: 15.99 },
     { id: '2', part: { name: 'Coil Cleaner Solution' }, quantity: 1, unitCost: 24.50 },
   ],
+  attachments: [] as Array<{ id: string; fileName: string; originalName: string; fileUrl: string; fileType: string; fileSize: number; uploadedBy: string; uploadedAt: string; createdAt: string }>,
 };
 
 const statusActions: { status: WorkOrderStatus; label: string; variant: 'primary' | 'success' | 'danger' | 'outline' }[] = [
@@ -49,9 +51,11 @@ const statusActions: { status: WorkOrderStatus; label: string; variant: 'primary
 export function WorkOrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'activity' | 'timeline'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'activity' | 'timeline' | 'files'>('details');
   const [showDelete, setShowDelete] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [attachments, setAttachments] = useState(mockWO.attachments);
+  const [uploading, setUploading] = useState(false);
   const wo = mockWO;
 
   const tabs = [
@@ -59,7 +63,28 @@ export function WorkOrderDetailPage() {
     { key: 'comments', label: `Comments (${wo.comments.length})` },
     { key: 'activity', label: 'Activity' },
     { key: 'timeline', label: 'Timeline' },
+    { key: 'files', label: `Files (${attachments.length})` },
   ] as const;
+
+  const handleFileUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const uploaded = await fileService.uploadFile(file, id);
+      setAttachments((prev) => [...prev, uploaded]);
+    } catch {
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileDownload = (fileName: string) => {
+    fileService.downloadFile(fileName);
+  };
+
+  const handleFileDelete = (fileId: string) => {
+    fileService.deleteFile(fileId);
+    setAttachments((prev) => prev.filter((f) => f.id !== fileId));
+  };
 
   return (
     <div className="space-y-6">
@@ -235,6 +260,19 @@ export function WorkOrderDetailPage() {
               </div>
             ))}
           </div>
+        </Card>
+      )}
+
+      {activeTab === 'files' && (
+        <Card>
+          <div className="mb-4">
+            <FileUpload onUpload={handleFileUpload} disabled={uploading} />
+          </div>
+          <FileManager
+            files={attachments}
+            onDownload={handleFileDownload}
+            onDelete={handleFileDelete}
+          />
         </Card>
       )}
 

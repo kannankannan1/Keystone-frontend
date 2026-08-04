@@ -4,32 +4,13 @@ import { useForm } from 'react-hook-form';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store';
+import { authService } from '@/services';
 import { Button } from '@/components/common';
-import type { Role } from '@/types';
 
 interface LoginForm {
   email: string;
   password: string;
 }
-
-const MOCK_USERS: Record<string, { password: string; user: { id: string; email: string; firstName: string; lastName: string; role: Role; phone: string; createdAt: string; updatedAt: string } }> = {
-  'manager@keystone.io': {
-    password: 'password',
-    user: { id: '1', email: 'manager@keystone.io', firstName: 'Sarah', lastName: 'Johnson', role: 'manager', phone: '555-0100', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  },
-  'dispatcher@keystone.io': {
-    password: 'password',
-    user: { id: '2', email: 'dispatcher@keystone.io', firstName: 'Alex', lastName: 'Kumar', role: 'dispatcher', phone: '555-0200', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  },
-  'technician@keystone.io': {
-    password: 'password',
-    user: { id: '3', email: 'technician@keystone.io', firstName: 'John', lastName: 'Smith', role: 'technician', phone: '555-0300', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  },
-  'customer@keystone.io': {
-    password: 'password',
-    user: { id: '4', email: 'customer@keystone.io', firstName: 'Jane', lastName: 'Doe', role: 'customer', phone: '555-0400', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  },
-};
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,16 +26,16 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    const entry = MOCK_USERS[data.email.toLowerCase()];
-    if (entry && data.password === entry.password) {
-      setAuth(entry.user, 'demo-jwt-token');
-      toast.success(`Welcome back, ${entry.user.firstName}!`);
+    try {
+      const response = await authService.login(data.email, data.password);
+      setAuth(response.user, response.accessToken);
+      toast.success(`Welcome back, ${response.user.firstName}!`);
       navigate('/dashboard');
-    } else {
+    } catch {
       toast.error('Invalid email or password');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -120,13 +101,19 @@ export function LoginPage() {
           Sign in
         </Button>
 
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="font-medium text-blue-600 hover:text-blue-700">
+            Sign up
+          </Link>
+        </p>
+
         <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <p className="mb-2 text-xs font-semibold text-blue-700 dark:text-blue-300">Demo Accounts (password: password)</p>
+          <p className="mb-2 text-xs font-semibold text-blue-700 dark:text-blue-300">Demo Accounts (password: demo)</p>
           <div className="space-y-1 text-xs text-blue-600 dark:text-blue-400">
-            <p><strong>Manager:</strong> manager@keystone.io</p>
-            <p><strong>Dispatcher:</strong> dispatcher@keystone.io</p>
-            <p><strong>Technician:</strong> technician@keystone.io</p>
-            <p><strong>Customer:</strong> customer@keystone.io</p>
+            <p><strong>Manager:</strong> admin@example.com</p>
+            <p><strong>Technician:</strong> tech@example.com</p>
+            <p><strong>Customer:</strong> customer@example.com (sign up or use password demo123)</p>
           </div>
         </div>
       </form>

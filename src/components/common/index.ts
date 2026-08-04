@@ -13,3 +13,5 @@ export { Pagination } from './Pagination';
 export { StatCard } from './StatCard';
 export { LoadingScreen } from './LoadingScreen';
 export { FilterPanel, FilterSelect } from './FilterPanel';
+export { FileUpload } from './FileUpload';
+export { FileManager } from './FileManager';
